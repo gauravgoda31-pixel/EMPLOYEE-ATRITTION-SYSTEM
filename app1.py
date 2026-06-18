@@ -1,12 +1,13 @@
 import streamlit as st
 import pickle
 import numpy as np
+from sklearn.preprocessing import LabelEncoder
+import pandas as pd
 
 with open('attrition_model (4).pkl', 'rb') as f:
     model = pickle.load(f)
 
-st.set_page_config(page_title="Employee Attrition Prediction", 
-                   page_icon="👔")
+st.set_page_config(page_title="Employee Attrition Prediction", page_icon="👔")
 st.title("👔 Employee Attrition Prediction System")
 st.write("Fill in employee details to predict if they will leave.")
 
@@ -14,27 +15,33 @@ col1, col2 = st.columns(2)
 
 with col1:
     age = st.number_input("Age", min_value=18, max_value=60, value=30)
-    monthly_income = st.number_input("Monthly Income", min_value=0, value=5000)
-    job_satisfaction = st.selectbox("Job Satisfaction (1-4)", [1, 2, 3, 4])
-    years_at_company = st.number_input("Years at Company", min_value=0, value=5)
-    overtime = st.selectbox("OverTime", ["Yes", "No"])
-    distance = st.number_input("Distance From Home (km)", min_value=0, value=10)
+    gender = st.selectbox("Gender", ["Male", "Female"])
+    department = st.selectbox("Department", ["Sales", "HR", "IT", "Finance", "Marketing"])
+    job_title = st.selectbox("Job Title", ["Manager", "Engineer", "Analyst", "Executive", "Director"])
+    years = st.number_input("Years at Company", min_value=0, max_value=40, value=5)
 
 with col2:
-    environment = st.selectbox("Environment Satisfaction (1-4)", [1, 2, 3, 4])
-    work_life = st.selectbox("Work Life Balance (1-4)", [1, 2, 3, 4])
-    job_level = st.selectbox("Job Level (1-5)", [1, 2, 3, 4, 5])
-    num_companies = st.number_input("Number of Companies Worked", min_value=0, value=2)
-    training = st.number_input("Training Times Last Year", min_value=0, value=2)
-    performance = st.selectbox("Performance Rating (1-4)", [1, 2, 3, 4])
+    satisfaction = st.slider("Satisfaction Level", 0.0, 1.0, 0.5)
+    avg_hours = st.number_input("Average Monthly Hours", min_value=0, max_value=400, value=160)
+    promotion = st.selectbox("Promotion in Last 5 Years", [0, 1])
+    salary = st.selectbox("Salary", ["low", "medium", "high"])
 
 if st.button("🔍 Predict Attrition"):
-    ot = 1 if overtime == "Yes" else 0
+    # Encode exactly same as training
+    gender_enc = 1 if gender == "Male" else 0
+    
+    dept_map = {"Sales": 0, "HR": 1, "IT": 2, "Finance": 3, "Marketing": 4}
+    dept_enc = dept_map.get(department, 0)
+    
+    job_map = {"Manager": 0, "Engineer": 1, "Analyst": 2, "Executive": 3, "Director": 4}
+    job_enc = job_map.get(job_title, 0)
+    
+    salary_map = {"low": 1, "medium": 2, "high": 0}
+    salary_enc = salary_map.get(salary, 1)
 
-    features = np.array([[age, monthly_income, job_satisfaction,
-                          years_at_company, ot, distance,
-                          environment, work_life, job_level,
-                          num_companies, training, performance]])
+    features = np.array([[age, gender_enc, dept_enc, job_enc,
+                          years, satisfaction, avg_hours,
+                          promotion, salary_enc]])
 
     prediction = model.predict(features)[0]
 
