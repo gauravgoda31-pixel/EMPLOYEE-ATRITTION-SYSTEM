@@ -1,6 +1,7 @@
+streamlit
 numpy
 pandas
-seaborn
-matplotlib.pyplot
 scikit-learn
 xgboost
+imbalanced-learn
+pickle5
